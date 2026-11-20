@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>До дня рождения Шнайдера Артемия — 22 ноября</title>
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Подключение шрифта Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #09090b;
+            color: #fafafa;
+            overflow-x: hidden;
+        }
+
+        /* Фиксированная ширина цифр, чтобы карточки не дёргались при смене секунд */
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Мягкое фоновое свечение */
+        .ambient-glow {
+            position: fixed;
+            border-radius: 9999px;
+            filter: blur(110px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.45;
+            animation: pulseGlow 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.35; }
+            100% { transform: scale(1.12) translate(15px, -15px); opacity: 0.55; }
+        }
+
+        /* Стеклянные карточки для цифр */
+        .timer-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+            transition: transform 0.25s ease, border-color 0.25s ease;
+        }
+
+        .timer-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(251, 191, 36, 0.35);
+        }
+
+        /* Canvas для праздничного конфетти в день рождения */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 relative selection:bg-amber-500/30 selection:text-amber-200">
+
+    <!-- Декоративное фоновое освещение -->
+    <div class="ambient-glow w-72 h-72 sm:w-96 sm:h-96 bg-amber-500/30 -top-16 -left-16"></div>
+    <div class="ambient-glow w-80 h-80 sm:w-[28rem] sm:h-[28rem] bg-indigo-600/30 -bottom-20 -right-16" style="animation-delay: -4s;"></div>
+
+    <!-- Слой для анимации конфетти -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Основной контейнер -->
+    <main class="relative z-10 w-full max-w-3xl mx-auto text-center flex flex-col items-center">
+        
+        <!-- Бейдж с датой -->
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-amber-300 text-xs sm:text-sm font-medium tracking-wide mb-6 shadow-sm">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+            <span id="target-date-label">22 ноября</span>
+        </div>
+
+        <!-- Главный заголовок -->
+        <h1 id="main-title" class="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-3 leading-tight">
+            До дня рождения<br>
+            <span class="bg-gradient-to-r from-amber-200 via-amber-400 to-orange-400 bg-clip-text text-transparent">
+                Шнайдера Артемия
+            </span>
+        </h1>
+
+        <p id="subtitle" class="text-zinc-400 text-sm sm:text-base max-w-md mb-10 sm:mb-12">
+            Обратный отсчёт до главного события 22 ноября
+        </p>
+
+        <!-- Сетка таймера -->
+        <div id="countdown-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-5 w-full max-w-2xl">
+            <!-- Дни -->
+            <div class="timer-card rounded-2xl p-5 sm:p-7 flex flex-col items-center justify-center">
+                <span id="days" class="tabular-nums text-4xl sm:text-6xl font-bold text-white tracking-tight">00</span>
+                <span id="days-label" class="text-xs sm:text-sm font-medium text-zinc-400 uppercase tracking-widest mt-2">Дней</span>
+            </div>
+
+            <!-- Часы -->
+            <div class="timer-card rounded-2xl p-5 sm:p-7 flex flex-col items-center justify-center">
+                <span id="hours" class="tabular-nums text-4xl sm:text-6xl font-bold text-white tracking-tight">00</span>
+                <span id="hours-label" class="text-xs sm:text-sm font-medium text-zinc-400 uppercase tracking-widest mt-2">Часов</span>
+            </div>
+
+            <!-- Минуты -->
+            <div class="timer-card rounded-2xl p-5 sm:p-7 flex flex-col items-center justify-center">
+                <span id="minutes" class="tabular-nums text-4xl sm:text-6xl font-bold text-white tracking-tight">00</span>
+                <span id="minutes-label" class="text-xs sm:text-sm font-medium text-zinc-400 uppercase tracking-widest mt-2">Минут</span>
+            </div>
+
+            <!-- Секунды -->
+            <div class="timer-card rounded-2xl p-5 sm:p-7 flex flex-col items-center justify-center">
+                <span id="seconds" class="tabular-nums text-4xl sm:text-6xl font-bold text-amber-400 tracking-tight">00</span>
+                <span id="seconds-label" class="text-xs sm:text-sm font-medium text-zinc-400 uppercase tracking-widest mt-2">Секунд</span>
+            </div>
+        </div>
+
+        <!-- Праздничный блок (появляется автоматически 22 ноября) -->
+        <div id="celebration-box" class="hidden w-full max-w-xl timer-card rounded-3xl p-8 sm:p-10 border-amber-400/30">
+            <div class="text-5xl sm:text-6xl mb-4">🎂🎉🥳</div>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-white mb-3">
+                С Днём Рождения, Артемий!
+            </h2>
+            <p class="text-zinc-300 text-sm sm:text-base leading-relaxed">
+                Сегодня 22 ноября — день рождения Шнайдера Артемия! Желаем крутых достижений, ярких эмоций и отличного настроения!
+            </p>
+        </div>
+
+    </main>
+
+    <script>
+        /**
+         * Склонение русских числительных (например: 1 день, 2 дня, 5 дней)
+         */
+        function getPlural(number, forms) {
+            const n = Math.abs(number) % 100;
+            const n1 = n % 10;
+            if (n > 10 && n < 20) return forms[2];
+            if (n1 > 1 && n1 < 5) return forms[1];
+            if (n1 === 1) return forms[0];
+            return forms[2];
+        }
+
+        /**
+         * Вычисляет целевую дату: 22 ноября 00:00:00 ближайшего года.
+         * Если сейчас уже 22 ноября, возвращает флаг isToday = true.
+         */
+        function getBirthdayTarget() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            // Месяцы в JS начинаются с 0 (0 = январь, 10 = ноябрь)
+            const isToday = now.getMonth() === 10 && now.getDate() === 22;
+
+            if (isToday) {
+                return { isToday: true, targetDate: null, year: currentYear };
+            }
+
+            let target = new Date(currentYear, 10, 22, 0, 0, 0, 0);
+            // Если 22 ноября в этом году уже прошло, берём 22 ноября следующего года
+            if (now.getTime() > target.getTime()) {
+                target = new Date(currentYear + 1, 10, 22, 0, 0, 0, 0);
+            }
+
+            return { isToday: false, targetDate: target, year: target.getFullYear() };
+        }
+
+        // Элементы DOM
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
+
+        const daysLabelEl = document.getElementById('days-label');
+        const hoursLabelEl = document.getElementById('hours-label');
+        const minutesLabelEl = document.getElementById('minutes-label');
+        const secondsLabelEl = document.getElementById('seconds-label');
+
+        const targetDateLabel = document.getElementById('target-date-label');
+        const countdownGrid = document.getElementById('countdown-grid');
+        const celebrationBox = document.getElementById('celebration-box');
+        const mainTitle = document.getElementById('main-title');
+        const subtitle = document.getElementById('subtitle');
+
+        let confettiStarted = false;
+
+        /**
+         * Простая и лёгкая анимация конфетти на Canvas
+         */
+        function startConfetti() {
+            if (confettiStarted) return;
+            confettiStarted = true;
+
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            });
+
+            const colors = ['#fbbf24', '#f59e0b', '#6366f1', '#ec4899', '#10b981', '#ffffff'];
+            const particles = Array.from({ length: 120 }, () => ({
+                x: Math.random() * width,
+                y: Math.random() * height - height,
+                size: Math.random() * 7 + 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                speedY: Math.random() * 2.5 + 1.5,
+                speedX: Math.random() * 2 - 1,
+                angle: Math.random() * 360,
+                spin: Math.random() * 6 - 3
+            }));
+
+            function render() {
+                ctx.clearRect(0, 0, width, height);
+                particles.forEach(p => {
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    p.angle += p.spin;
+
+                    if (p.y > height + 20) {
+                        p.y = -20;
+                        p.x = Math.random() * width;
+                    }
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.angle * Math.PI) / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+                    ctx.restore();
+                });
+                requestAnimationFrame(render);
+            }
+
+            render();
+        }
+
+        /**
+         * Обновление значений таймера каждую секунду
+         */
+        function updateCountdown() {
+            const { isToday, targetDate, year } = getBirthdayTarget();
+            targetDateLabel.textContent = `22 ноября ${year}`;
+
+            if (isToday) {
+                countdownGrid.classList.add('hidden');
+                subtitle.classList.add('hidden');
+                mainTitle.classList.add('hidden');
+                celebrationBox.classList.remove('hidden');
+                startConfetti();
+                return;
+            }
+
+            // Убеждаемся, что интерфейс таймера виден, если день рождения ещё не наступил
+            countdownGrid.classList.remove('hidden');
+            subtitle.classList.remove('hidden');
+            mainTitle.classList.remove('hidden');
+            celebrationBox.classList.add('hidden');
+
+            const now = new Date();
+            const diff = Math.max(0, targetDate.getTime() - now.getTime());
+
+            const totalSeconds = Math.floor(diff / 1000);
+            const days = Math.floor(totalSeconds / (3600 * 24));
+            const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            daysEl.textContent = String(days).padStart(2, '0');
+            hoursEl.textContent = String(hours).padStart(2, '0');
+            minutesEl.textContent = String(minutes).padStart(2, '0');
+            secondsEl.textContent = String(seconds).padStart(2, '0');
+
+            daysLabelEl.textContent = getPlural(days, ['День', 'Дня', 'Дней']);
+            hoursLabelEl.textContent = getPlural(hours, ['Час', 'Часа', 'Часов']);
+            minutesLabelEl.textContent = getPlural(minutes, ['Минута', 'Минуты', 'Минут']);
+            secondsLabelEl.textContent = getPlural(seconds, ['Секунда', 'Секунды', 'Секунд']);
+        }
+
+        // Запуск при загрузке страницы
+        window.addEventListener('load', () => {
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        });
+    </script>
+</body>
+</html>
